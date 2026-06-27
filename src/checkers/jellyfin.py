@@ -10,7 +10,8 @@ from .common import activity_state
 from ..config import JellyfinConfig
 
 
-def jellyfin_get_devices(cfg: JellyfinConfig):
+
+def __jellyfin_get_devices(cfg: JellyfinConfig):
     try:
         response = requests.get(
             f"{cfg.url}/Devices",
@@ -23,11 +24,12 @@ def jellyfin_get_devices(cfg: JellyfinConfig):
         return []
 
 
+
 def jellyfin_not_active(cfg: JellyfinConfig) -> activity_state:
     try:
         current_time = datetime.now(timezone.utc).timestamp()
         
-        devices = jellyfin_get_devices(cfg)
+        devices = __jellyfin_get_devices(cfg)
         active_devices = []
 
         for device in devices:

@@ -3,14 +3,10 @@ import threading
 import requests
 import time
 from functools import partial
+from typing import Callable
+from datetime import datetime
 
-from .checkers.jellyfin import jellyfin_not_active
-from .checkers.vscode import vscode_not_active
-from .checkers.minecraft import minecraft_not_active
-from .checkers.users import users_not_active
-from .checkers.qbit import qbit_not_active
-from .checkers.immich import immich_not_active
-
+from .checkers.common import activity_state
 from .util.logger import logger
 from .util.prometheus import Metrics
 from .config import Config
@@ -19,20 +15,30 @@ from .config import Config
 
 class ServiceTracker:
 
-    def __init__(self, metrics: Metrics, config: Config, poll_rate: int) -> None:
+    def __init__(self, metrics: Metrics, config: Config) -> None:
         self.prometheus = metrics
         self.cfg = config
-        self.poll_rate = poll_rate
+        
         self.counter = 0
+        self.suspend_until = datetime.now()
 
-        self.services = [
-            partial(immich_not_active, cfg=self.cfg.immich),
-            partial(jellyfin_not_active, cfg=self.cfg.jellyfin),
-            partial(qbit_not_active, cfg=self.cfg.qbit),
-            vscode_not_active,
-            minecraft_not_active,
-            users_not_active,
-        ]
+        self.services: list[Callable[..., activity_state]] = []
+
+
+    def add_service(
+        self,
+        is_inactive: Callable[..., activity_state],
+        config = None
+    ) -> 'ServiceTracker':
+        
+        if config:
+            self.services.append(partial(is_inactive, cfg=config))
+        else:
+            self.services.append(is_inactive)
+        
+        logger.info(f"loaded {is_inactive.__name__.split("_", 1)[0]} service successfully")
+        
+        return self
 
 
     def run(self) -> None:
@@ -43,10 +49,10 @@ class ServiceTracker:
 
 
     def __start_loop(self) -> None:
-        tries = self.poll_rate
+        tries = self.cfg.common.poll_rate
 
         while True:
-            time.sleep(self.cfg.common.shutdown_timeout / self.poll_rate)
+            time.sleep(self.cfg.common.shutdown_timeout / self.cfg.common.poll_rate)
             
             all_inactive = True
             for checker in self.services:
@@ -71,7 +77,10 @@ class ServiceTracker:
             logger.info(f"===== Shutdown counter: {self.counter}/{tries} =====")
 
             if self.counter == tries:
-                self.__init_shutdown()
+                if self.suspend_until > datetime.now():
+                    logger.info(f"shutdown suspended until: {self.suspend_until}")
+                else:
+                    self.__init_shutdown()
 
 
     def __init_shutdown(self) -> None:

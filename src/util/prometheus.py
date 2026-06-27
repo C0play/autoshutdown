@@ -8,7 +8,7 @@ from ..config import Config
 
 class Metrics:
 
-    def __init__(self, service_names: list[str], config: Config) -> None:
+    def __init__(self, service_names: list[str], hostname: str) -> None:
         self.registry = CollectorRegistry()
         
         self.shutdown_gauge = Gauge(
@@ -16,7 +16,7 @@ class Metrics:
             "Current progress of the shutdown counter",
             registry=self.registry,
             namespace="autoshutdown",
-            subsystem=config.common.hostname
+            subsystem=hostname
         )
 
         self.service_states = Gauge(
@@ -25,7 +25,7 @@ class Metrics:
             labelnames=["service"],
             registry=self.registry,
             namespace="autoshutdown",
-            subsystem=config.common.hostname
+            subsystem=hostname
         )
 
         for name in service_names:

@@ -1,13 +1,10 @@
-from typing import (
-    TypedDict,
-    cast,
-)
-
+from typing import TypedDict, cast
 import qbittorrentapi
 
 from ..util.logger import logger
 from .common import activity_state
 from ..config import QbitConfig
+
 
 
 class TorrentInfo(TypedDict):
@@ -19,9 +16,11 @@ class TorrentInfo(TypedDict):
     num_complete: int # all known seeders, including not connected
 
 
+
 class TorrentProperties(TypedDict):
     dl_speed_avg: int
     dl_speed: int
+
 
 
 def qbit_not_active(cfg: QbitConfig) -> activity_state:

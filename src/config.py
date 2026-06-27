@@ -29,7 +29,9 @@ class NotificationConfig(NamedTuple):
 
 class CommonConfig(NamedTuple):
     shutdown_timeout: int
+    poll_rate: int
     hostname: str
+    port: int
 
 
 class Config(NamedTuple):
@@ -52,6 +54,8 @@ def load_configs() -> Config:
     return Config(
         CommonConfig(
             shutdown_timeout= int(os.getenv("TIMEOUT", 600)),
+            port=int(os.getenv("PORT", "")),
+            poll_rate=int(os.getenv("POLL_RATE", "")),
             hostname=os.getenv("HOSTNAME", "")
         ),
         NotificationConfig(
