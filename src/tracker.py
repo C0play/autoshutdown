@@ -21,6 +21,7 @@ class ServiceTracker:
         
         self.counter = 0
         self.suspend_until = datetime.now()
+        self.latest_info: list[dict] = []
 
         self.services: list[Callable[..., activity_state]] = []
 
@@ -49,16 +50,20 @@ class ServiceTracker:
 
 
     def __start_loop(self) -> None:
-        tries = self.cfg.common.poll_rate
+        max_count = self.cfg.common.poll_rate
 
         while True:
             time.sleep(self.cfg.common.shutdown_timeout / self.cfg.common.poll_rate)
-            
+            self.latest_info = []
             all_inactive = True
             for checker in self.services:
 
                 res = checker()
                 all_inactive &= res.not_active
+                self.latest_info.append({
+                    "service": res.service_name,
+                    "info": res.info
+                })
 
                 logger.info(f"{res.service_name}: {res.info}")
 
@@ -67,23 +72,25 @@ class ServiceTracker:
                     .set(not res.not_active)
                 )
 
-            if all_inactive:
+            if all_inactive and self.suspend_until <= datetime.now():
                 self.counter = self.counter + 1
                 self.prometheus.shutdown_gauge.inc()
-            else:
+            elif not all_inactive:
                 self.counter = 0
                 self.prometheus.shutdown_gauge.set(0)
             
-            logger.info(f"===== Shutdown counter: {self.counter}/{tries} =====")
+            logger.info(f"===== Shutdown counter: {self.counter}/{max_count} =====")
 
-            if self.counter == tries:
+            if self.counter == max_count:
                 if self.suspend_until > datetime.now():
                     logger.info(f"shutdown suspended until: {self.suspend_until}")
                 else:
-                    self.__init_shutdown()
+                    self.init_shutdown()
+
+            # time.sleep(self.cfg.common.shutdown_timeout / self.cfg.common.poll_rate)
 
 
-    def __init_shutdown(self) -> None:
+    def init_shutdown(self) -> None:
         try:
             self.__pre_shutdown()
             logger.info("Shutdown: all checks True, shutting down.")

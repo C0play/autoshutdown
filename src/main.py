@@ -1,7 +1,7 @@
-from .config import load_configs
 from .util.prometheus import Metrics
-from .api import API
 from .tracker import ServiceTracker
+from .config import load_configs
+from .api import API
 
 from .checkers.jellyfin import jellyfin_not_active
 from .checkers.vscode import vscode_not_active

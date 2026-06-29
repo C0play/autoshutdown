@@ -54,8 +54,8 @@ def load_configs() -> Config:
     return Config(
         CommonConfig(
             shutdown_timeout= int(os.getenv("TIMEOUT", 600)),
-            port=int(os.getenv("PORT", "")),
-            poll_rate=int(os.getenv("POLL_RATE", "")),
+            port=int(os.getenv("PORT", 6677)),
+            poll_rate=int(os.getenv("POLL_RATE", 5)),
             hostname=os.getenv("HOSTNAME", "")
         ),
         NotificationConfig(
