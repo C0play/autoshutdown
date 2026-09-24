@@ -1,5 +1,3 @@
-#!/home/blazej/autoshutdown/.venv/bin/python3.14
-
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
