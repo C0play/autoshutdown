@@ -31,13 +31,19 @@ def qbit_not_active(cfg: QbitConfig) -> activity_state:
             for torrent in torrents_info:
                 info = cast(TorrentInfo, dict(torrent))
                 properties = cast(TorrentProperties, dict(torrent.properties))
-                
-                # skip all torrents, that are not in a state, that would halt shutdown
-                if not (torrent.get("state") in ["downloading", "checkingUP", "allocating"]):
-                    continue
-                
                 progress = info.get("progress", 0) * 100
                 priority = info.get("priority", -1)
+                state = torrent.get("state")
+
+                # halt for all torrents, that are in an important state
+                if state in ["checkingDL", "checkingUP", "checkingResumeData", "allocating", "moving"]:
+                    msg = f"torrent {priority} is {state}."
+                    return activity_state(False, "qbit", msg)
+                
+                # skip torrents that are not downloading
+                if state != "downloading":
+                    continue
+
                 
                 dl_speed_avg = properties.get("dl_speed_avg", 0)
                 dl_speed = properties.get("dl_speed", 0)
@@ -62,7 +68,7 @@ def qbit_not_active(cfg: QbitConfig) -> activity_state:
                     msg = f"torrent {priority} is rare and downloading (seeds: {num_seeds_total}, speed: {dl_speed/1024:.1f} KB/s)."
                     return activity_state(False, "qbit", msg)
             
-            msg = f"no important downloads in progress."
+            msg = "no important downloads in progress."
             return activity_state(True, "qbit", msg)
         
     except Exception as e:
