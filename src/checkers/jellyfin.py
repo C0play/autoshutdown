@@ -1,21 +1,16 @@
-import requests
-from datetime import (
-    datetime,
-    timezone,
-    timedelta
-)
+from datetime import datetime, timedelta, timezone
 
+import requests
+
+from ..config import JellyfinConfig
 from ..util.logger import logger
 from .common import activity_state
-from ..config import JellyfinConfig
-
 
 
 def __jellyfin_get_devices(cfg: JellyfinConfig):
     try:
         response = requests.get(
-            f"{cfg.url}/Devices",
-            headers={"X-Emby-Token": cfg.api_key}
+            f"{cfg.url}/Devices", headers={"X-Emby-Token": cfg.api_key}
         )
         response.raise_for_status()
         return response.json().get("Items", [])
@@ -24,11 +19,10 @@ def __jellyfin_get_devices(cfg: JellyfinConfig):
         return []
 
 
-
 def jellyfin_not_active(cfg: JellyfinConfig) -> activity_state:
     try:
         current_time = datetime.now(timezone.utc).timestamp()
-        
+
         devices = __jellyfin_get_devices(cfg)
         active_devices = []
 
@@ -39,17 +33,19 @@ def jellyfin_not_active(cfg: JellyfinConfig) -> activity_state:
 
             if last_activity:
                 try:
-                    dt_str = last_activity.replace('Z', '+00:00')
+                    dt_str = last_activity.replace("Z", "+00:00")
                     last_activity_time = datetime.fromisoformat(dt_str).timestamp()
-                    
-                    logger.debug(f"jellyfin: {device_name} last active {timedelta(seconds=int(current_time - last_activity_time))} ago.")
-                    
+
+                    logger.debug(
+                        f"jellyfin: {device_name} last active {timedelta(seconds=int(current_time - last_activity_time))} ago."
+                    )
+
                     if current_time - last_activity_time < cfg.timeout:
                         active_devices.append(f"{device_name}:{username}")
 
                 except (ValueError, TypeError):
                     continue
-        
+
         if active_devices:
             msg = f"active devices detected ({len(active_devices)}): {active_devices}"
             return activity_state(False, "jellyfin", msg)
@@ -59,5 +55,6 @@ def jellyfin_not_active(cfg: JellyfinConfig) -> activity_state:
 
     except Exception as e:
         logger.exception(f"jellyfin: error checking status: {e}")
-        return activity_state(False, "jellyfin", "Error while checking state. See logs.")
-    
+        return activity_state(
+            False, "jellyfin", "Error while checking state. See logs."
+        )
