@@ -1,15 +1,13 @@
-from .util.prometheus import Metrics
-from .tracker import ServiceTracker
-from .config import load_configs
 from .api import API
-
-from .checkers.jellyfin import jellyfin_not_active
-from .checkers.vscode import vscode_not_active
-from .checkers.minecraft import minecraft_not_active
-from .checkers.users import users_not_active
-from .checkers.qbit import qbit_not_active
 from .checkers.immich import immich_not_active
-
+from .checkers.jellyfin import jellyfin_not_active
+from .checkers.minecraft import minecraft_not_active
+from .checkers.qbit import qbit_not_active
+from .checkers.users import users_not_active
+from .checkers.vscode import vscode_not_active
+from .config import load_configs
+from .tracker import ServiceTracker
+from .util.prometheus import Metrics
 
 
 def main():
@@ -20,7 +18,7 @@ def main():
 
     tracker = (ServiceTracker(metrics, config)
                 .add_service(jellyfin_not_active, config.jellyfin)
-                .add_service(immich_not_active, config.immich)
+#                .add_service(immich_not_active, config.immich)
                 .add_service(qbit_not_active, config.qbit)
                 .add_service(vscode_not_active)
                 .add_service(minecraft_not_active)
