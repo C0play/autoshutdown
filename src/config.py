@@ -1,23 +1,42 @@
 import os
-from typing import NamedTuple
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from dotenv import find_dotenv, load_dotenv
 
 
-class ImmichConfig(NamedTuple):
+@dataclass
+class EnvConfig(ABC):
+    @classmethod
+    @abstractmethod
+    def from_env(cls) -> "EnvConfig":
+        """
+        Load config from .env file.
+
+        Returns:
+            "EnvConfig": NamedTuple containing the configured fields.
+        """
+
+
+@dataclass
+class ImmichConfig(EnvConfig):
     timeout: int
 
-    def from_env(self) -> "ImmichConfig":
+    @classmethod
+    def from_env(cls) -> "ImmichConfig":
         return ImmichConfig(
-            timeout=10 * 60, # min * sec
+            timeout=10 * 60,  # min * sec
         )
 
-class JellyfinConfig(NamedTuple):
+
+@dataclass
+class JellyfinConfig(EnvConfig):
     api_key: str
     url: str
     timeout: int
 
-    def from_env(self) -> "JellyfinConfig":
+    @classmethod
+    def from_env(cls) -> "JellyfinConfig":
         return JellyfinConfig(
             api_key=os.getenv("JELLYFIN_API_KEY", ""),
             url=os.getenv("JELLYFIN_URL", ""),
@@ -25,7 +44,8 @@ class JellyfinConfig(NamedTuple):
         )
 
 
-class QbitConfig(NamedTuple):
+@dataclass
+class QbitConfig(EnvConfig):
     url: str
     port: int
     user: str
@@ -34,80 +54,62 @@ class QbitConfig(NamedTuple):
     max_eta: int
     rare_limit: int
 
-    def from_env(self) -> "QbitConfig":
+    @classmethod
+    def from_env(cls) -> "QbitConfig":
         return QbitConfig(
             url=os.getenv("QBIT_URL", ""),
             port=int(os.getenv("QBIT_PORT", "8080")),
             user=os.getenv("QBIT_USER", ""),
             password=os.getenv("QBIT_PASSWD", ""),
             active_ratio=1.0,
-            max_eta=15 * 60, # min * sec
+            max_eta=15 * 60,  # min * sec
             rare_limit=5,
         )
 
 
-class NotificationConfig(NamedTuple):
+@dataclass
+class NotificationConfig(EnvConfig):
     ntfy_url: str
 
-    def from_env(self) -> "NotificationConfig":
-        return NotificationConfig(
-            ntfy_url=os.getenv("NTFY_URL", "")
-        )
+    @classmethod
+    def from_env(cls) -> "NotificationConfig":
+        return NotificationConfig(ntfy_url=os.getenv("NTFY_URL", ""))
 
 
-class CommonConfig(NamedTuple):
+@dataclass
+class CommonConfig(EnvConfig):
     shutdown_timeout: int
     poll_rate: int
     hostname: str
     port: int
+    mock_shutdown: bool
+
+    @classmethod
+    def from_env(cls) -> "CommonConfig":
+        return CommonConfig(
+            shutdown_timeout=int(os.getenv("TIMEOUT", "600")),
+            port=int(os.getenv("PORT", "6677")),
+            poll_rate=int(os.getenv("POLL_RATE", "5")),
+            hostname=os.getenv("HOSTNAME", ""),
+            mock_shutdown=os.getenv("MOCK_SHUTDOWN", "false").lower()
+            in ["true", "yes", "1"],
+        )
 
 
-class Config(NamedTuple):
+@dataclass
+class Config(EnvConfig):
     common: CommonConfig
     notification: NotificationConfig
-    immich: ImmichConfig
-    jellyfin: JellyfinConfig
-    qbit: QbitConfig
 
+    @classmethod
+    def from_env(cls) -> "Config":
+        path = find_dotenv()
+        if not path:
+            raise ValueError("config: path to .env not found")
 
+        load_dotenv(path)
 
-def load_configs() -> Config:
-
-    path = find_dotenv()
-    if not path:
-        raise ValueError("config: path to .env not found")
-
-    load_dotenv(path)
-
-    return Config(
-        CommonConfig(
-            shutdown_timeout= int(os.getenv("TIMEOUT", 600)),
-            port=int(os.getenv("PORT", 6677)),
-            poll_rate=int(os.getenv("POLL_RATE", 5)),
-            hostname=os.getenv("HOSTNAME", "")
-        ),
-        NotificationConfig(
-            ntfy_url=os.getenv("NTFY_URL", "")
-        ),
-        ImmichConfig(
-            timeout=10 * 60, # min * sec
-        ),
-        JellyfinConfig(
-            api_key=os.getenv("JELLYFIN_API_KEY", ""),
-            url=os.getenv("JELLYFIN_URL", ""),
-            timeout=5 * 60,  # min * sec
-
-        ),
-        QbitConfig(
-            url=os.getenv("QBIT_URL", ""),
-            port=int(os.getenv("QBIT_PORT", "8080")),
-            user=os.getenv("QBIT_USER", ""),
-            password=os.getenv("QBIT_PASSWD", ""),
-            active_ratio=1.0,
-            max_eta=15 * 60, # min * sec
-            rare_limit=5,
+        return Config(
+            CommonConfig.from_env(),
+            NotificationConfig.from_env(),
         )
-    )
-
-def __is_set(name: str) -> bool:
-    return os.getenv(name.upper()) is not None
