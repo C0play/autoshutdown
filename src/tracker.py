@@ -18,7 +18,7 @@ class ServiceTracker:
     def __init__(self, metrics: Metrics, config: Config) -> None:
         self.prometheus = metrics
         self.cfg = config
-        
+
         self.counter = 0
         self.suspend_until = datetime.now()
         self.latest_info: list[dict] = []
@@ -31,14 +31,14 @@ class ServiceTracker:
         is_inactive: Callable[..., activity_state],
         config = None
     ) -> 'ServiceTracker':
-        
+
         if config:
             self.services.append(partial(is_inactive, cfg=config))
         else:
             self.services.append(is_inactive)
-        
+
         logger.info(f"loaded {is_inactive.__name__.split("_", 1)[0]} service successfully")
-        
+
         return self
 
 
@@ -78,7 +78,7 @@ class ServiceTracker:
             elif not all_inactive:
                 self.counter = 0
                 self.prometheus.shutdown_gauge.set(0)
-            
+
             logger.info(f"===== Shutdown counter: {self.counter}/{max_count} =====")
 
             if self.counter == max_count:
@@ -94,13 +94,13 @@ class ServiceTracker:
         try:
             self.__pre_shutdown()
             logger.info("Shutdown: all checks True, shutting down.")
-            subprocess.run(["sudo", "shutdown"], check=True)
+            subprocess.run(["sudo", "systemctl", "suspend"], check=True)
         except Exception as e:
             logger.exception(f"Shutdown: {e}")
-    
-    
+
+
     def __pre_shutdown(self) -> None:
-        
+
         logger.info("Shutdown: all checks True, running pre-shutdown scripts.")
 
         if self.cfg.notification.ntfy_url:
