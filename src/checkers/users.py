@@ -1,7 +1,7 @@
 import subprocess
 
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.logger import logger
 
 
 def users_not_active() -> activity_state:
@@ -22,6 +22,6 @@ def users_not_active() -> activity_state:
         msg = "no logged-in users."
         return activity_state(True, "users", msg)
 
-    except Exception as e:
-        logger.exception(f"users: error checking logged-in users: {e}")
+    except Exception:
+        logger.exception("users: error checking logged-in users")
         return activity_state(False, "users", "Error while checking state. See logs.")

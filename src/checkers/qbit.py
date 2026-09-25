@@ -2,9 +2,9 @@ from typing import TypedDict, cast
 
 import qbittorrentapi
 
-from ..config import QbitConfig
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.config import QbitConfig
+from src.logger import logger
 
 
 class TorrentInfo(TypedDict):

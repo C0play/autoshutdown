@@ -2,17 +2,17 @@ import os
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from .api import API
-from .checkers.immich import immich_not_active
-from .checkers.jellyfin import jellyfin_not_active
-from .checkers.minecraft import minecraft_not_active
-from .checkers.qbit import qbit_not_active
-from .checkers.users import users_not_active
-from .checkers.vscode import vscode_not_active
-from .config import Config, EnvConfig, ImmichConfig, JellyfinConfig, QbitConfig
-from .tracker import ServiceTracker
-from .util.logger import logger
-from .util.prometheus import Metrics
+from src.api import API
+from src.checkers.immich import immich_not_active
+from src.checkers.jellyfin import jellyfin_not_active
+from src.checkers.minecraft import minecraft_not_active
+from src.checkers.qbit import qbit_not_active
+from src.checkers.users import users_not_active
+from src.checkers.vscode import vscode_not_active
+from src.config import Config, EnvConfig, ImmichConfig, JellyfinConfig, QbitConfig
+from src.logger import logger
+from src.prometheus import Metrics
+from src.tracker import ServiceTracker
 
 
 @dataclass

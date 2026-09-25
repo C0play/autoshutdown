@@ -2,9 +2,9 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-from ..config import JellyfinConfig
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.config import JellyfinConfig
+from src.logger import logger
 
 
 def __jellyfin_get_devices(cfg: JellyfinConfig):
@@ -14,8 +14,8 @@ def __jellyfin_get_devices(cfg: JellyfinConfig):
         )
         response.raise_for_status()
         return response.json().get("Items", [])
-    except requests.RequestException as e:
-        logger.exception(f"error fetching devices: {e}")
+    except requests.RequestException:
+        logger.exception("error fetching devices")
         return []
 
 
@@ -50,11 +50,11 @@ def jellyfin_not_active(cfg: JellyfinConfig) -> activity_state:
             msg = f"active devices detected ({len(active_devices)}): {active_devices}"
             return activity_state(False, "jellyfin", msg)
         else:
-            msg = f"no active devices detected."
+            msg = "no active devices detected."
             return activity_state(True, "jellyfin", msg)
 
-    except Exception as e:
-        logger.exception(f"jellyfin: error checking status: {e}")
+    except Exception:
+        logger.exception("jellyfin: error checking status")
         return activity_state(
             False, "jellyfin", "Error while checking state. See logs."
         )

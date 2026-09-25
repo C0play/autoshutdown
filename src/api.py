@@ -6,8 +6,8 @@ from prometheus_client import (
     generate_latest,
 )
 
-from .tracker import ServiceTracker
-from .util.prometheus import Metrics
+from src.prometheus import Metrics
+from src.tracker import ServiceTracker
 
 
 class API:

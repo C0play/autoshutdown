@@ -7,11 +7,11 @@ from functools import partial
 
 import requests
 
-from .checkers.common import activity_state
-from .config import Config
-from .types import ShutdownType
-from .util.logger import logger
-from .util.prometheus import Metrics
+from src.checkers.common import activity_state
+from src.config import Config
+from src.logger import logger
+from src.prometheus import Metrics
+from src.types import ShutdownType
 
 
 class ServiceTracker:

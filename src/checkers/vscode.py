@@ -1,7 +1,7 @@
 import subprocess
 
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.logger import logger
 
 
 def vscode_not_active() -> activity_state:
@@ -18,6 +18,6 @@ def vscode_not_active() -> activity_state:
         msg = "no active extension host."
         return activity_state(True, "vscode", msg)
 
-    except Exception as e:
-        logger.exception(f"vscode: error checking processes: {e}")
+    except Exception:
+        logger.exception("vscode: error checking processes")
         return activity_state(False, "vscode", "Error while checking state. See logs.")
