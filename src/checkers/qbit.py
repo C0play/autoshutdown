@@ -23,59 +23,65 @@ class TorrentProperties(TypedDict):
 
 def qbit_not_active(cfg: QbitConfig) -> activity_state:
     try:
-        with qbittorrentapi.Client(
-            host=cfg.url, username=cfg.user, password=cfg.password, api_key=cfg.api_key,
-        ) as client:
-            torrents_info = client.torrents.info()
-
-            for torrent in torrents_info:
-                info = cast(TorrentInfo, dict(torrent))
-                properties = cast(TorrentProperties, dict(torrent.properties))
-                progress = info.get("progress", 0) * 100
-                priority = info.get("priority", -1)
-                state = torrent.get("state")
-
-                # halt for all torrents, that are in an important state
-                if state in [
-                    "checkingDL",
-                    "checkingUP",
-                    "checkingResumeData",
-                    "allocating",
-                    "moving",
-                ]:
-                    msg = f"torrent {priority} is {state}."
-                    return activity_state(False, "qbit", msg)
-
-                # skip torrents that are not downloading
-                if state != "downloading":
-                    continue
-
-                dl_speed_avg = properties.get("dl_speed_avg", 0)
-                dl_speed = properties.get("dl_speed", 0)
-
-                # if a torrent is experiencing a surge of down speed, suspend
-                if dl_speed_avg > 0:
-                    ratio = dl_speed / dl_speed_avg
-                    if ratio > cfg.active_ratio:
-                        msg = f"torrent {priority} is downloading (ratio={(ratio):.2f}, {progress:.1f}%)."
-                        return activity_state(False, "qbit", msg)
-
-                eta = info.get("eta", 864000)
-
-                # if a torrent is about to finish, suspend
-                if eta < cfg.max_eta:
-                    msg = f"torrent {priority} will complete in {eta / 60:.1f}min."
-                    return activity_state(False, "qbit", msg)
-
-                # if a torrent is rare, suspend
-                num_seeds_total = info.get("num_complete", 100)
-                if num_seeds_total <= cfg.rare_limit and dl_speed > 0:
-                    msg = f"torrent {priority} is rare and downloading (seeds: {num_seeds_total}, speed: {dl_speed / 1024:.1f} KB/s)."
-                    return activity_state(False, "qbit", msg)
-
-            msg = "no important downloads in progress."
-            return activity_state(True, "qbit", msg)
+        if cfg.api_key is not None:
+            with qbittorrentapi.Client(host=cfg.url, api_key=cfg.api_key) as client:
+                return __helper(client, cfg)
+        else:
+            with qbittorrentapi.Client(host=cfg.url, username=cfg.user, password=cfg.password) as client:
+                return __helper(client, cfg)
 
     except Exception:
         logger.exception("qbit: error checking status")
         return activity_state(False, "qbit", "Error while checking state. See logs.")
+
+
+def __helper(client, cfg) -> activity_state:
+    torrents_info = client.torrents.info()
+
+    for torrent in torrents_info:
+        info = cast(TorrentInfo, dict(torrent))
+        properties = cast(TorrentProperties, dict(torrent.properties))
+        progress = info.get("progress", 0) * 100
+        priority = info.get("priority", -1)
+        state = torrent.get("state")
+
+        # halt for all torrents, that are in an important state
+        if state in [
+            "checkingDL",
+            "checkingUP",
+            "checkingResumeData",
+            "allocating",
+            "moving",
+        ]:
+            msg = f"torrent {priority} is {state}."
+            return activity_state(False, "qbit", msg)
+
+        # skip torrents that are not downloading
+        if state != "downloading":
+            continue
+
+        dl_speed_avg = properties.get("dl_speed_avg", 0)
+        dl_speed = properties.get("dl_speed", 0)
+
+        # if a torrent is experiencing a surge of down speed, suspend
+        if dl_speed_avg > 0:
+            ratio = dl_speed / dl_speed_avg
+            if ratio > cfg.active_ratio:
+                msg = f"torrent {priority} is downloading (ratio={(ratio):.2f}, {progress:.1f}%)."
+                return activity_state(False, "qbit", msg)
+
+        eta = info.get("eta", 864000)
+
+        # if a torrent is about to finish, suspend
+        if eta < cfg.max_eta:
+            msg = f"torrent {priority} will complete in {eta / 60:.1f}min."
+            return activity_state(False, "qbit", msg)
+
+        # if a torrent is rare, suspend
+        num_seeds_total = info.get("num_complete", 100)
+        if num_seeds_total <= cfg.rare_limit and dl_speed > 0:
+            msg = f"torrent {priority} is rare and downloading (seeds: {num_seeds_total}, speed: {dl_speed / 1024:.1f} KB/s)."
+            return activity_state(False, "qbit", msg)
+
+    msg = "no important downloads in progress."
+    return activity_state(True, "qbit", msg)
