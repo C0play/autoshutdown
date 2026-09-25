@@ -51,6 +51,7 @@ class JellyfinConfig(EnvConfig):
 class QbitConfig(EnvConfig):
     url: str
     port: int
+    api_key: str | None
     user: str
     password: str
     active_ratio: float
@@ -62,6 +63,7 @@ class QbitConfig(EnvConfig):
         return QbitConfig(
             url=os.getenv("QBIT_URL", ""),
             port=int(os.getenv("QBIT_PORT", "8080")),
+            api_key=os.getenv("QBIT_API_KEY", None),
             user=os.getenv("QBIT_USER", ""),
             password=os.getenv("QBIT_PASSWD", ""),
             active_ratio=1.0,

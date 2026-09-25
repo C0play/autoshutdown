@@ -24,7 +24,7 @@ class TorrentProperties(TypedDict):
 def qbit_not_active(cfg: QbitConfig) -> activity_state:
     try:
         with qbittorrentapi.Client(
-            host=cfg.url, username=cfg.user, password=cfg.password
+            host=cfg.url, username=cfg.user, password=cfg.password, api_key=cfg.api_key,
         ) as client:
             torrents_info = client.torrents.info()
 
@@ -76,6 +76,6 @@ def qbit_not_active(cfg: QbitConfig) -> activity_state:
             msg = "no important downloads in progress."
             return activity_state(True, "qbit", msg)
 
-    except Exception as e:
-        logger.exception(f"qbit: error checking status: {e}")
+    except Exception:
+        logger.exception("qbit: error checking status")
         return activity_state(False, "qbit", "Error while checking state. See logs.")
