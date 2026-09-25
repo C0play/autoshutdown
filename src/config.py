@@ -1,8 +1,11 @@
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import cast
 
 from dotenv import find_dotenv, load_dotenv
+
+from src.types import ShutdownType
 
 
 @dataclass
@@ -79,6 +82,7 @@ class NotificationConfig(EnvConfig):
 @dataclass
 class CommonConfig(EnvConfig):
     shutdown_timeout: int
+    shutdown_type: ShutdownType
     poll_rate: int
     hostname: str
     port: int
@@ -88,6 +92,7 @@ class CommonConfig(EnvConfig):
     def from_env(cls) -> "CommonConfig":
         return CommonConfig(
             shutdown_timeout=int(os.getenv("TIMEOUT", "600")),
+            shutdown_type=cast(ShutdownType, os.getenv("SHUTDOWN_TYPE")),
             port=int(os.getenv("PORT", "6677")),
             poll_rate=int(os.getenv("POLL_RATE", "5")),
             hostname=os.getenv("HOSTNAME", ""),

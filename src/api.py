@@ -25,9 +25,9 @@ class API:
         def get_info():
             return self.tracker.latest_info, 200
 
-        @self.app.post("/shutdown")
+        @self.app.post(f"/{self.tracker.cfg.common.shutdown_type}")
         def shutdown():
-            self.tracker.init_shutdown()
+            self.tracker.init_poweroff()
             return "shutdown initiated", 200
 
         @self.app.post("/suspend/<time>")

@@ -9,11 +9,13 @@ import requests
 
 from .checkers.common import activity_state
 from .config import Config
+from .types import ShutdownType
 from .util.logger import logger
 from .util.prometheus import Metrics
 
 
 class ServiceTracker:
+
     def __init__(self, metrics: Metrics, config: Config) -> None:
         self.prometheus = metrics
         self.cfg = config
@@ -75,17 +77,21 @@ class ServiceTracker:
                 if self.suspend_until > datetime.now(UTC):
                     logger.info(f"shutdown suspended until: {self.suspend_until}")
                 else:
-                    self.init_shutdown()
+                    self.init_poweroff()
 
             # time.sleep(self.cfg.common.shutdown_timeout / self.cfg.common.poll_rate)
 
-    def init_shutdown(self) -> None:
+    def init_poweroff(self) -> None:
         try:
+            cmds: dict[ShutdownType, list[str]] = {
+                "shutdown": ["sudo", "shutdown"],
+                "suspend": ["sudo", "systemctl", "suspend"],
+            }
             self.__pre_shutdown()
             logger.info("Shutdown: all checks True, shutting down.")
             if self.cfg.common.mock_shutdown:
                 return
-            subprocess.run(["sudo", "systemctl", "suspend"], check=True)
+            subprocess.run(cmds[self.cfg.common.shutdown_type], check=True)
         except Exception:
             logger.exception("Shutdown failed")
 
