@@ -92,7 +92,7 @@ class CommonConfig(EnvConfig):
     def from_env(cls) -> "CommonConfig":
         return CommonConfig(
             shutdown_timeout=int(os.getenv("TIMEOUT", "600")),
-            shutdown_type=cast(ShutdownType, os.getenv("SHUTDOWN_TYPE")),
+            shutdown_type=cast(ShutdownType, os.getenv("SHUTDOWN_TYPE", "shutdown")),
             port=int(os.getenv("PORT", "6677")),
             poll_rate=int(os.getenv("POLL_RATE", "5")),
             hostname=os.getenv("HOSTNAME", ""),
