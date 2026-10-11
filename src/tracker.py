@@ -102,6 +102,6 @@ class ServiceTracker:
         if self.cfg.notification.ntfy_url:
             requests.post(
                 self.cfg.notification.ntfy_url,
-                data=f"**{self.cfg.common.hostname}** has been shut down",
+                data=f"**{self.cfg.common.hostname}** offline",
                 headers={"Markdown": "1", "Title": "Shutdown", "Tags": "red_circle"},
             )
