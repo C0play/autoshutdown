@@ -15,7 +15,6 @@ from src.types import ShutdownType
 
 
 class ServiceTracker:
-
     def __init__(self, metrics: Metrics, config: Config) -> None:
         self.prometheus = metrics
         self.cfg = config
@@ -84,7 +83,7 @@ class ServiceTracker:
     def init_poweroff(self) -> None:
         try:
             cmds: dict[ShutdownType, list[str]] = {
-                "shutdown": ["sudo", "shutdown"],
+                "shutdown": ["sudo", "shutdown", "-h", "now"],
                 "suspend": ["sudo", "systemctl", "suspend"],
             }
             self.__pre_shutdown()
