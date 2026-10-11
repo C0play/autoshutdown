@@ -12,8 +12,8 @@ def users_not_active() -> activity_state:
             line.strip() for line in (res.stdout or "").splitlines() if line.strip()
         ]
         if lines:
-            username = lines[0].split(" ")[0]
-            ip = lines[0].split(" ")[2]
+            username = lines[0].split()[0]
+            ip = lines[0].split()[2]
             msg = f"logged-in sessions detected ({username}@{ip})."
             return activity_state(False, "users", msg)
 
