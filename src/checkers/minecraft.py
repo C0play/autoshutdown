@@ -1,8 +1,8 @@
 import json
 import subprocess
 
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.logger import logger
 
 
 def minecraft_not_active() -> activity_state:
@@ -27,8 +27,8 @@ def minecraft_not_active() -> activity_state:
                 False, "minecraft", f"{len(containers)} containers online"
             )
 
-    except Exception as e:
-        logger.exception(f"minecraft: error checking containers: {e}")
+    except Exception:
+        logger.exception("minecraft: error checking containers")
         return activity_state(
             False, "minecraft", "Error while checking state. See logs."
         )

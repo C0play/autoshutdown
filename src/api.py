@@ -6,8 +6,8 @@ from prometheus_client import (
     generate_latest,
 )
 
-from .tracker import ServiceTracker
-from .util.prometheus import Metrics
+from src.prometheus import Metrics
+from src.tracker import ServiceTracker
 
 
 class API:
@@ -21,23 +21,23 @@ class API:
 
     def __register_routes(self) -> None:
 
-        @self.app.get("/info")
+        @self.app.get("/services/info")
         def get_info():
             return self.tracker.latest_info, 200
 
-        @self.app.post("/shutdown")
+        @self.app.post("/poweroff")
         def shutdown():
-            self.tracker.init_shutdown()
+            self.tracker.init_poweroff()
             return "shutdown initiated", 200
 
-        @self.app.post("/suspend/<time>")
+        @self.app.post("/poweroff/suspend/<time>")
         def set_suspend(time: int):
             self.tracker.suspend_until = datetime.now(UTC) + timedelta(
                 minutes=max(int(time), 0)
             )
             return {"timestamp": self.tracker.suspend_until}, 200
 
-        @self.app.get("/suspend")
+        @self.app.get("/poweroff/suspend/info")
         def get_suspend():
             is_suspended = self.tracker.suspend_until > datetime.now(UTC)
             time = 0 if not is_suspended else self.tracker.suspend_until

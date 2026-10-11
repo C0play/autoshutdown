@@ -1,9 +1,9 @@
 import re
 import subprocess
 
-from ..config import ImmichConfig
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.config import ImmichConfig
+from src.logger import logger
 
 
 def immich_not_active(cfg: ImmichConfig) -> activity_state:
@@ -31,9 +31,9 @@ def immich_not_active(cfg: ImmichConfig) -> activity_state:
             )
             return activity_state(False, "immich", msg)
 
-        msg = f"no activity in logs."
+        msg = "no activity in logs."
         return activity_state(True, "immich", msg)
 
-    except Exception as e:
-        logger.exception(f"immich: error checking status: {e}")
+    except Exception:
+        logger.exception("immich: error checking status")
         return activity_state(False, "immich", "Error while checking state. See logs.")

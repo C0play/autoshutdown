@@ -1,2 +1,2 @@
 [lint]
-logger-objects = ["src.util.logger.logger"]
+logger-objects = ["src.logger.logger"]

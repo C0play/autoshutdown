@@ -1,7 +1,7 @@
 import subprocess
 
-from ..util.logger import logger
-from .common import activity_state
+from src.checkers.common import activity_state
+from src.logger import logger
 
 
 def users_not_active() -> activity_state:
