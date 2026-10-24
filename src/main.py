@@ -39,7 +39,6 @@ def main():
         if os.getenv(name.upper()) is None:
             logger.info(f"NOT adding service {name} to tracker.")
             continue
-        logger.info(f"adding service {name} to tracker.")
         service_config = service.config.from_env() if service.config else None
         tracker.add_service(service.func, service_config)
 
