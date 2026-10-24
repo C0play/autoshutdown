@@ -1,7 +1,7 @@
 import subprocess
+from collections.abc import Iterator
 
 import jc
-from jc.jc_types import Iterator, JSONDictType
 
 from src.checkers.common import activity_state
 from src.logger import logger
@@ -11,7 +11,7 @@ def users_not_active() -> activity_state:
     try:
         # -h - print no header info
         res = subprocess.run(["w"], check=True, capture_output=True, text=True)
-        res_json = jc.parse("w", (res.stdout or "").splitlines())
+        res_json = jc.parse("w", res.stdout or "")
 
         if not res_json:
             msg = "no logged-in users."
