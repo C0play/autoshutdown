@@ -7,7 +7,7 @@ from src.logger import logger
 
 def minecraft_not_active() -> activity_state:
     """Zwraca: True jeśli Minecraft nie blokuje shutdown, inaczej False."""
-    cmd = ["docker", "ps", "--filter", "name=mc_*", "--format", "json"]
+    cmd = ["docker", "ps", "--filter", "name=mc_[0-9]+", "--format", "json"]
     try:
         res = subprocess.run(cmd, capture_output=True, check=True, text=True)
         output = res.stdout.strip()
