@@ -3,3 +3,4 @@ python-dotenv
 qbittorrent-api
 flask
 prometheus_client
+jc
