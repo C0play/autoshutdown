@@ -41,7 +41,9 @@ class ServiceTracker:
         return self
 
     def run(self) -> None:
+        self.__pre_start()
         threading.Thread(target=self.__start_loop, daemon=True).start()
+        logger.info("SYSTEM: service running.")
 
     def __start_loop(self) -> None:
         max_count = self.cfg.common.poll_rate
@@ -86,21 +88,32 @@ class ServiceTracker:
                 "shutdown": ["sudo", "shutdown", "-h", "now"],
                 "suspend": ["sudo", "systemctl", "suspend"],
             }
-            self.__pre_shutdown()
-            logger.info("Shutdown: all checks True, shutting down.")
+            self.__pre_stop()
+            logger.info("SYSTEM: all checks True, shutting down.")
             if self.cfg.common.mock_shutdown:
                 return
             subprocess.run(cmds[self.cfg.common.shutdown_type], check=True)
         except Exception:
             logger.exception("Shutdown failed")
 
-    def __pre_shutdown(self) -> None:
+    def __pre_start(self) -> None:
 
-        logger.info("Shutdown: all checks True, running pre-shutdown scripts.")
+        logger.info("SYSTEM: starting service.")
+
+        if self.cfg.notification.ntfy_url:
+            requests.post(
+                self.cfg.notification.ntfy_url,
+                data=f"**{self.cfg.common.hostname}** online",
+                headers={"Markdown": "1", "Tags": "green_circle"},
+            )
+
+    def __pre_stop(self) -> None:
+
+        logger.info("SYSTEM: running pre-shutdown scripts.")
 
         if self.cfg.notification.ntfy_url:
             requests.post(
                 self.cfg.notification.ntfy_url,
                 data=f"**{self.cfg.common.hostname}** offline",
-                headers={"Markdown": "1", "Title": "Shutdown", "Tags": "red_circle"},
+                headers={"Markdown": "1", "Tags": "red_circle"},
             )
